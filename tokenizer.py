@@ -1,14 +1,17 @@
 import re
 import pickle
 import pandas as pd
+import csv
 
 from soynlp.noun import LRNounExtractor_v2
+from soynlp.tokenizer import LTokenizer
 
 class Tokenizer:
     def __init__(self):
         self.texts = []
         self.xlsx = None
         self.noun_scores = None
+        self.tokenized_words = None
 
     def read_excel_get_texts(self, path: str):
         self.xlsx = pd.read_excel(path)
@@ -27,14 +30,41 @@ class Tokenizer:
         nouns = noun_extractor.train_extract(self.texts)
         self.noun_scores = {noun: score.score for noun, score in nouns.items()}
 
+    def text_to_token(self):
+        ltokenizer = LTokenizer(scores=self.noun_scores)
+        print("making list of words")
+        tokenized_words = []
+        for text in self.texts:
+            conclude_sent = []
+            pre_list = ltokenizer.tokenize(text, flatten=False)
+            for LR_list in pre_list:
+                word = LR_list[0]
+                conclude_sent.append(word)
+            tokenized_words.append(conclude_sent)
+        self.tokenized_words = tokenized_words
+
     def save_noun_scores(self, path: str):
         with open(path, 'wb') as fw:
             pickle.dump(self.noun_scores, fw)
             print("dumping complete")
 
+    def load_noun_scores(self, path: str):
+        with open(path, 'rb') as fr:
+            self.noun_scores = pickle.load(fr)
+            print("load complete")
+
+    def save_tokenized_words(self, path: str):
+        f = open(path, 'w', newline="")
+        wr = csv.writer(f)
+        for word in self.tokenized_words:
+            wr.writerow(word)
+        f.close()
 
 if __name__ == "__main__":
     tokenizer = Tokenizer()
     tokenizer.read_excel_get_texts('total_data.xlsx')
-    tokenizer.extract_noun()
-    tokenizer.save_noun_scores('noun_scores_dictionary.pickle')
+    # tokenizer.extract_noun()
+    # tokenizer.save_noun_scores('noun_scores_dictionary.pickle')
+    tokenizer.load_noun_scores('noun_scores_dictionary.pickle')
+    tokenizer.text_to_token()
+    tokenizer.save_tokenized_words('tokenized_word.csv')
