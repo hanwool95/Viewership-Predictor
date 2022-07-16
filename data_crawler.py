@@ -127,9 +127,9 @@ class Viewer_Ship:
         for search_name in self.search_names:
             target_word = self.broad_cast + " " + search_name + " " + "시청률"
             target_word = quote(target_word)
+            time.sleep(1)
             viewer_ship_rate = self.search_viewer_ship_rate(target_word)
-            if viewer_ship_rate:
-                self.__viewer_ship_rates[search_name] = viewer_ship_rate
+            self.__viewer_ship_rates[search_name] = viewer_ship_rate
 
     def search_viewer_ship_rate(self, target_name: str):
         target_url = self.search_link + target_name
@@ -156,11 +156,17 @@ class Viewer_Ship:
 
 
 if __name__ == "__main__":
-    program_crawler = SBS_Program_information('https://www.sbs.co.kr/ko/tv/drama')
-    program_crawler.search_app_programs()
-    program_crawler.find_program_information_by_urls()
-    program_crawler.save_all_program_information_by_csv()
+    # program_crawler = SBS_Program_information('https://www.sbs.co.kr/ko/tv/drama')
+    # program_crawler.search_app_programs()
+    # program_crawler.find_program_information_by_urls()
+    # program_crawler.save_all_program_information_by_csv()
 
-    # viewer_ship_searcher = Viewer_Ship(['신의 저울', '골 때리는 그녀들'], 'SBS')
-    # viewer_ship_searcher.find_viewer_ship_from_search_link()
-    # viewer_ship_searcher.save_by_csv()
+    programs = []
+    with open('total_information.csv', 'r', encoding='utf-8') as file:
+        spamreader = csv.reader(file, delimiter=',')
+        for row in spamreader:
+            programs.append(row[1])
+    print(programs)
+    viewer_ship_searcher = Viewer_Ship(programs, 'SBS')
+    viewer_ship_searcher.find_viewer_ship_from_search_link()
+    viewer_ship_searcher.save_by_csv()
